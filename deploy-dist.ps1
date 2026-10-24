@@ -85,6 +85,9 @@ $remote = @'
 set -e
 mkdir -p __REMOTE_DIR__
 cd __REMOTE_DIR__
+# 历史遗留防御：早期脚本用 CRLF 发送时，会在 /root 下留下一个名字末尾带回车符的同名目录，
+# 在文件管理器里和正常目录长得一模一样。这里顺手清掉，避免再次出现"两个 homepage"。
+rm -rf "$PWD"$'\r'
 rm -rf dist && mkdir -p dist
 tar -xzf /tmp/homepage-dist.tar.gz -C dist
 cp -f /tmp/nginx.conf /tmp/docker-compose.yml /tmp/update.sh __REMOTE_DIR__/

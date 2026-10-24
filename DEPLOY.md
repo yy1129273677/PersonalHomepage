@@ -7,13 +7,13 @@
 
 ## 0. 当前线上实例（已部署）
 
-| 项 | 值 |
-| --- | --- |
-| 访问地址 | **http://8.147.114.201:3000** |
-| 服务器 | 阿里云 8.147.114.201（2 核 2G / 3M） |
-| 部署目录 | `/root/homepage` |
-| 容器 | `homepage-web`（`nginx:1.27-alpine`，`3000:80`，`restart: unless-stopped`） |
-| 端口 | 宿主机 **3000** → 容器 80 |
+| 项       | 值                                                                           |
+| -------- | ---------------------------------------------------------------------------- |
+| 访问地址 | **http://8.147.114.201:3000**                                                |
+| 服务器   | 阿里云 8.147.114.201（2 核 2G / 3M）                                         |
+| 部署目录 | `/root/homepage`                                                             |
+| 容器     | `homepage-web`（`nginx:1.27-alpine`，`3000:80`，`restart: unless-stopped`）  |
+| 端口     | 宿主机 **3000** → 容器 80                                                    |
 | 构建位置 | **本机**（服务器不装 Node，避免 2G 内存 + 3M 带宽下 `npm install` 过慢/OOM） |
 
 **日常发布**（改完代码在本机执行）：
@@ -249,3 +249,4 @@ curl -sI http://<IP或域名>/ | grep -i last-modified
 | 三列指标里趋势标签有的在数值右侧、有的掉到下一行             | 读数区用 `flex + flex-wrap` 横排，数值短的列标签同一行、数值长的列标签换行，三列结构不一致                                                                            | 读数区固定竖排（`flex-direction: column`）：刻度 / 读数 / 标签三层；实测三卡标签 top 全为 179（桌面）、150（手机），单元高度 75 / 57 完全一致 |
 | 滚动到中间后打开手机菜单，抽屉只剩顶上一条、下面露出页面内容 | `.header--solid` 上有 `backdrop-filter`，而 `backdrop-filter` 会让元素成为 `position: fixed` 子元素的包含块；抽屉原本写在 `<header>` 里，于是被压成 header 那 60px 高 | 抽屉移出 `<header>` 并加 `append-to-body`（直接挂到 body）；实测抽屉高度 970 / 844 = 视口高度，父链为 `.el-overlay → body`                    |
 | Firefox 上没有毛玻璃效果                                     | 同时写了 `-webkit-backdrop-filter` 和标准 `backdrop-filter`，构建压缩器去重后只保留 `-webkit-`（Firefox 不认前缀）                                                    | 标准属性改用 `@supports (backdrop-filter: blur(1px)) { ... }` 单独声明，压缩器不会跨规则去重；实测产物里两种写法都在                          |
+| 服务器上出现两个同名 `homepage` 目录                         | 早期脚本用 CRLF 发送，`mkdir -p /root/homepage\r` 把回车符一起建进了目录名，`ls` 里看起来完全一样（`%q` 才看得出）                                                    | 脚本在发送前把远端脚本统一转成 LF；并在远端执行开头加 `rm -rf "$PWD"$'\r'` 清理历史遗留                                                       |
