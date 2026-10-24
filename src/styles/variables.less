@@ -1,0 +1,43 @@
+// ===== 设计变量：颜色 / 圆角 / 阴影 / 字体 =====
+// 所有组件共用这里，改配色只改这一个文件。
+
+// 背景：近黑的深空蓝，方便叠背景图和发光元素
+@bg-deep: #05070f;
+@bg-deep-2: #070b16;
+@panel: rgba(10, 18, 32, 0.62);
+@panel-strong: rgba(9, 16, 28, 0.88);
+
+// 描边：半透明的青蓝色，营造「界面线框」感
+@line: rgba(110, 190, 255, 0.16);
+@line-strong: rgba(110, 190, 255, 0.34);
+
+// 主色：青（科技感） + 紫（科幻感） + 琥珀（点缀）
+@cyan: #4ee1ff;
+@cyan-soft: #7be9ff;
+@violet: #9b7bff;
+@amber: #ffc46b;
+
+// 文字层级
+@text: #e9f3ff;
+@text-sub: rgba(208, 224, 248, 0.68);
+@text-dim: rgba(190, 208, 236, 0.44);
+
+// 圆角与阴影
+@radius-sm: 10px;
+@radius: 18px;
+@radius-lg: 26px;
+@shadow-lg: 0 24px 70px rgba(0, 0, 0, 0.55);
+@shadow-glow:
+  0 0 0 1px rgba(78, 225, 255, 0.14),
+  0 18px 50px rgba(12, 60, 110, 0.35);
+
+// 字体
+@font-body: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei",
+  sans-serif;
+@font-display:
+  "Segoe UI Semibold",
+  -apple-system,
+  "PingFang SC",
+  "Microsoft YaHei",
+  sans-serif;
+@font-mono: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;

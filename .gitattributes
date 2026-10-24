@@ -1,0 +1,12 @@
+# 统一换行符：避免 Windows 上拉下来整仓库「全文件变更」
+* text=auto eol=lf
+
+# Windows 专有脚本保持 CRLF（cmd 对 LF 兼容性差）
+*.cmd text eol=crlf
+*.bat text eol=crlf
+
+# 二进制资源
+*.jpg binary
+*.png binary
+*.mp4 binary
+*.woff2 binary

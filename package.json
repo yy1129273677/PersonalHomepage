@@ -1,0 +1,43 @@
+{
+  "name": "personal-homepage",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "YY 的个人主页：科幻风格单页简历（Vue 3 + Vite + TypeScript + Element Plus + Three.js）",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "dev": "vite",
+    "build": "vue-tsc --noEmit && vite build",
+    "typecheck": "vue-tsc --noEmit",
+    "preview": "vite preview --host 127.0.0.1 --port 4179",
+    "format": "prettier --write .",
+    "format:check": "prettier --check ."
+  },
+  "keywords": [
+    "personal-homepage",
+    "resume",
+    "vue3",
+    "element-plus",
+    "three.js"
+  ],
+  "author": "YY",
+  "license": "MIT",
+  "dependencies": {
+    "@element-plus/icons-vue": "^2.3.2",
+    "element-plus": "^2.14.7",
+    "gsap": "^3.15.0",
+    "three": "^0.186.1",
+    "vue": "^3.5.44"
+  },
+  "devDependencies": {
+    "@types/three": "^0.186.0",
+    "@vitejs/plugin-vue": "^6.0.10",
+    "less": "^4.9.1",
+    "prettier": "^3.9.10",
+    "typescript": "~5.9.3",
+    "vite": "^8.3.5",
+    "vue-tsc": "^2.2.12"
+  }
+}

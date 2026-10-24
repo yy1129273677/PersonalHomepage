@@ -1,0 +1,294 @@
+@import "./variables.less";
+
+/* ===== 1. 基础重置 ===== */
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+  // 锚点跳转时给固定顶栏留出空间，避免标题被挡住
+  scroll-padding-top: 84px;
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background: @bg-deep;
+  color: @text;
+  font-family: @font-body;
+  font-size: 16px;
+  line-height: 1.7;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  overflow-x: hidden;
+}
+
+h1,
+h2,
+h3,
+h4,
+p {
+  margin: 0;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+img {
+  display: block;
+  max-width: 100%;
+}
+
+::selection {
+  background: rgba(78, 225, 255, 0.28);
+  color: #fff;
+}
+
+// 细一点的滚动条，深色背景下不刺眼
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(110, 190, 255, 0.24);
+  border-radius: 999px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+/* ===== 2. 布局工具类 ===== */
+.container {
+  width: 100%;
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 0 24px;
+}
+
+// 超宽屏（如 2.5K / 带鱼屏）：内容区适当放宽，避免两侧出现大片空白，
+// 观感上更像"整块画布"而不是"中间一条内容"
+@media (min-width: 1600px) {
+  .container {
+    max-width: 1320px;
+  }
+}
+
+.section {
+  position: relative;
+  padding: 104px 0;
+}
+
+.section--tight {
+  padding: 76px 0;
+}
+
+/* ===== 3. 章节标题（每个 section 统一结构） ===== */
+.section-head {
+  max-width: 720px;
+  margin-bottom: 48px;
+}
+
+.section-head__eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  font-family: @font-mono;
+  font-size: 12px;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: @cyan;
+  opacity: 0.9;
+
+  // 小圆点做「信号灯」的视觉锚点
+  &::before {
+    content: "";
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: @cyan;
+    box-shadow: 0 0 12px @cyan;
+  }
+}
+
+.section-head__title {
+  margin-top: 14px;
+  font-family: @font-display;
+  font-size: clamp(26px, 4vw, 42px);
+  line-height: 1.2;
+  letter-spacing: -0.01em;
+  // balance 会让浏览器自动把长标题均分成几行，避免最后一个字单独掉到下一行
+  text-wrap: balance;
+}
+
+.section-head__desc {
+  margin-top: 14px;
+  color: @text-sub;
+  font-size: clamp(15px, 1.6vw, 17px);
+  max-width: 620px;
+}
+
+/* ===== 4. 玻璃卡片（全站统一的「面板」质感） ===== */
+.glass-card {
+  position: relative;
+  background: @panel;
+  border: 1px solid @line;
+  border-radius: @radius;
+  // 优先写 -webkit- 前缀：老版 Safari 只认这个
+  -webkit-backdrop-filter: blur(14px) saturate(120%);
+  box-shadow: @shadow-lg;
+}
+
+// 标准写法和 -webkit- 写在同一条规则里时，构建压缩器会去重、只保留 -webkit-，
+// 结果 Firefox（不认 -webkit- 前缀）就丢了毛玻璃效果。
+// 用 @supports 单独声明标准属性，压缩器不会跨规则去重，两个浏览器都能生效。
+@supports (backdrop-filter: blur(1px)) {
+  .glass-card {
+    backdrop-filter: blur(14px) saturate(120%);
+  }
+}
+
+/* ===== 5. 背景图层（用真实照片 + 压暗遮罩，保证文字可读） ===== */
+// 全站有一层固定的环境背景（见 App.vue 的 .ambient），所以这里的照片不是"一块一块的方块"：
+// 上下边缘用 mask 淡出，照片会自然溶进环境背景里，滚动时看不出章节接缝。
+.bg-layer {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    // 压暗 + 提高对比，让白色文字在照片上依然清晰
+    filter: brightness(0.46) saturate(1.05) contrast(1.05);
+    transform: scale(1.04);
+    // 顶部/底部各留一段渐变，让照片和环境背景无缝衔接
+    mask-image: linear-gradient(180deg, transparent 0%, #000 16%, #000 78%, transparent 100%);
+    -webkit-mask-image: linear-gradient(180deg, transparent 0%, #000 16%, #000 78%, transparent 100%);
+  }
+
+  // 再叠一层很淡的暗色渐变负责"压字"，但它两端都是半透明的，
+  // 不能是纯色，否则又会在章节边界切出一条硬边
+  &::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(180deg, rgba(5, 7, 15, 0.62) 0%, rgba(5, 7, 15, 0.42) 45%, rgba(5, 7, 15, 0.18) 100%);
+  }
+
+  // 变体：照片本身很暗的章节（比如联系区的地球夜景），少压暗一点，否则什么都看不见
+  &--bright img {
+    filter: brightness(0.72) saturate(1.15) contrast(1.02);
+  }
+}
+
+/* 章节内容统一压在背景层之上 */
+.section > .container {
+  position: relative;
+  z-index: 1;
+}
+
+/* ===== 6. 滚动进场动画的兜底 =====
+   JS 正常时由 GSAP 控制；JS 失效或用户开启「减少动态效果」时内容必须可见 */
+[data-reveal] {
+  opacity: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+}
+
+/* ===== 7. 键盘可达性：焦点必须看得见 ===== */
+:focus-visible {
+  outline: 2px solid @cyan;
+  outline-offset: 3px;
+  border-radius: 6px;
+}
+
+/* 给「跳到主内容」链接用 */
+.skip-link {
+  position: absolute;
+  left: 16px;
+  top: -60px;
+  z-index: 999;
+  padding: 10px 18px;
+  border-radius: 999px;
+  background: @cyan;
+  color: #04121a;
+  font-weight: 600;
+  transition: top 0.2s ease;
+
+  &:focus {
+    top: 16px;
+  }
+}
+
+/* ===== 7.5 Element Plus 相邻按钮的默认外边距 =====
+   Element Plus 给 `.el-button + .el-button` 加了 `margin-left: 12px`。
+   我们所有按钮组都是 flex + gap 布局：
+     - 横排时它会和 gap 叠加 → 间距忽大忽小；
+     - 竖排（手机端 flex-direction: column）时它变成了"右移 12px" → 按钮看着没居中。
+   所以统一清零，间距完全交给 gap 控制。 */
+.el-button + .el-button {
+  margin-left: 0;
+}
+
+/* ===== 8. Element Plus 暗色主题微调（把默认蓝换成青） ===== */
+html.dark {
+  --el-color-primary: #4ee1ff;
+  --el-color-primary-light-3: #87ebff;
+  --el-color-primary-light-5: #a9f0ff;
+  --el-color-primary-light-7: #cdf7ff;
+  --el-color-primary-light-9: #eafcff;
+  --el-color-primary-dark-2: #3ec0d8;
+
+  --el-bg-color: #0a1220;
+  --el-bg-color-page: #05070f;
+  --el-bg-color-overlay: #0c1626;
+  --el-fill-color-blank: transparent;
+  --el-border-color: rgba(110, 190, 255, 0.2);
+  --el-border-color-light: rgba(110, 190, 255, 0.14);
+  --el-text-color-primary: #e9f3ff;
+  --el-text-color-regular: rgba(208, 224, 248, 0.82);
+  --el-text-color-secondary: rgba(208, 224, 248, 0.6);
+  --el-mask-color: rgba(3, 6, 12, 0.72);
+}
+
+/* ===== 9. 移动端：整体缩小留白与字号 ===== */
+@media (max-width: 900px) {
+  body {
+    font-size: 15px;
+  }
+  .section {
+    padding: 72px 0;
+  }
+  .section--tight {
+    padding: 56px 0;
+  }
+  .container {
+    padding: 0 18px;
+  }
+  .section-head {
+    margin-bottom: 34px;
+  }
+  html {
+    scroll-padding-top: 68px;
+  }
+}
