@@ -65,14 +65,15 @@ Write-Host "  产物：$archive（$sizeMB MB）"
 
 # ---------- 3. 上传 ----------
 Step "3/5 上传到服务器"
+$target = "root@$Server"
 $sshArgs = @("-i", $Key, "-o", "BatchMode=yes", "-o", "StrictHostKeyChecking=accept-new", "-p", $SshPort)
 $scpArgs = @("-i", $Key, "-o", "BatchMode=yes", "-o", "StrictHostKeyChecking=accept-new", "-P", $SshPort)
 
-& scp @scpArgs $archive "$Server`:/tmp/homepage-dist.tar.gz"
+& scp @scpArgs $archive "$target`:/tmp/homepage-dist.tar.gz"
 if ($LASTEXITCODE -ne 0) { Fail "上传 dist 失败（检查网络 / 私钥路径）" }
 
 foreach ($file in @("nginx.conf", "docker-compose.yml", "update.sh")) {
-    & scp @scpArgs "$root\$file" "$Server`:/tmp/$file"
+    & scp @scpArgs "$root\$file" "$target`:/tmp/$file"
     if ($LASTEXITCODE -ne 0) { Fail "上传 $file 失败" }
 }
 Write-Host "  dist + 3 个配置文件已上传"
@@ -92,9 +93,11 @@ docker compose up -d --force-recreate
 rm -f /tmp/homepage-dist.tar.gz /tmp/nginx.conf /tmp/docker-compose.yml /tmp/update.sh
 '@
 $remote = $remote.Replace("__REMOTE_DIR__", $RemoteDir)
+# 关键：转成 LF 再发给 bash，否则每行末尾的 \r 会被当成参数（之前踩过）
+$remote = $remote -replace "`r`n", "`n" -replace "`r", "`n"
 $b64 = [Convert]::ToBase64String([Text.Encoding]::UTF8.GetBytes($remote))
 
-& ssh @sshArgs $Server "echo $b64 | base64 -d | bash"
+& ssh @sshArgs $target "echo $b64 | base64 -d | bash"
 if ($LASTEXITCODE -ne 0) { Fail "服务器端部署失败，登上去看 docker compose logs" }
 
 # ---------- 5. 自检 ----------
@@ -112,5 +115,5 @@ foreach ($c in $checks) {
     Write-Host "  $ok $($c.Name)：HTTP $code（期望 $($c.Expect)）"
 }
 # 容器状态
-& ssh @sshArgs $Server "docker ps --filter name=homepage-web --format '  {{.Names}}  {{.Status}}  {{.Ports}}'"
+& ssh @sshArgs $target "docker ps --filter name=homepage-web --format '  {{.Names}}  {{.Status}}  {{.Ports}}'"
 Write-Host "`n完成。访问：$base" -ForegroundColor Green
