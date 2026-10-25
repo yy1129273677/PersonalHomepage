@@ -36,6 +36,21 @@ cd /root/homepage && bash update.sh
 
 ---
 
+## 0.05 GitHub Pages（备用托管，免费 HTTPS）
+
+仓库是公开的，所以额外配了一份 GitHub Pages 作为**备用访问地址**：
+
+```
+https://yy1129273677.github.io/PersonalHomepage/
+```
+
+- 触发方式：push 到 `main` 自动构建部署（`.github/workflows/deploy-pages.yml`），也可在 Actions 页手动 Run
+- 首次需要在仓库 **Settings → Pages → Source** 选 **GitHub Actions**（本项目已通过 API 开启）
+- 因为是**纯静态站点**，这种托管方式零成本；`base: "./"` 已适配 `/PersonalHomepage/` 子路径
+- ⚠️ 国内访问 `github.io` 不稳定（时快时慢、偶尔打不开），所以**只作备用**，主站仍用云服务器 `:3000`
+
+---
+
 ## 0.1 部署形态二选一（如果你换服务器）
 
 | 形态                              | 适用                        | 访问地址形态                      |

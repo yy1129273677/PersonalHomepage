@@ -1,0 +1,67 @@
+# 把个人主页自动发布到 GitHub Pages
+#
+# 触发：push 到 main 分支，或在 Actions 页面手动 Run workflow
+# 产物：https://yy1129273677.github.io/PersonalHomepage/
+#
+# 说明：
+#   - 本项目是纯静态站点，构建产物就是 dist/，非常适合这种托管方式；
+#   - vite.config.ts 里 base 是 "./"，所以放在 /PersonalHomepage/ 子路径下也能正常加载资源；
+#   - 首次需要在仓库 Settings → Pages → Source 选择「GitHub Actions」（或由仓库管理员在 API 里开启）。
+
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+# 只允许读取代码，写 Pages、拿 OIDC 令牌
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# 同一时间只跑一个部署，新的推送会取消进行中的旧部署
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: 构建
+    runs-on: ubuntu-latest
+    steps:
+      - name: 拉代码
+        uses: actions/checkout@v4
+
+      - name: 装 Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: 安装依赖
+        run: npm ci
+
+      - name: 类型检查 + 构建
+        run: npm run build
+
+      - name: 配置 Pages
+        uses: actions/configure-pages@v5
+
+      - name: 上传构建产物
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
+
+  deploy:
+    name: 部署
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: 发布到 Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

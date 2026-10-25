@@ -144,7 +144,10 @@ PersonalHomepage/
 
 ## 5. 部署
 
-**当前线上实例**：<http://8.147.114.201:3000>（阿里云服务器，Nginx 容器托管 `dist`）
+**线上地址**（主）：<http://8.147.114.201:3000>（阿里云服务器，Nginx 容器托管 `dist`）
+
+**备用地址（GitHub Pages，免费 HTTPS）**：<https://yy1129273677.github.io/PersonalHomepage/>
+推送到 `main` 会自动构建并部署（`.github/workflows/deploy-pages.yml`）。
 
 一键发布（本机构建 → 上传 → 服务器重建容器 → 自检）：
 
