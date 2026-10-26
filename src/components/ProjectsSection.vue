@@ -78,12 +78,17 @@
       </div>
     </div>
 
-    <!-- 项目详情：用 Element Plus 弹窗，避免页面变长 -->
+    <!-- 项目详情：用 Element Plus 弹窗，避免页面变长
+         append-to-body 必须加：不加的话弹窗会渲染在 <main> 里，
+         而 <main> 有 z-index:1、固定顶栏是 z-index:100，
+         结果顶栏永远压在弹窗上面——全屏弹窗时正好盖住标题和右上角关闭按钮，用户就关不掉了。 -->
     <el-dialog
       v-model="detailVisible"
       :title="current?.name"
       width="min(760px, 92vw)"
       align-center
+      :fullscreen="dialogFullscreen"
+      append-to-body
       class="project-dialog"
     >
       <template v-if="current">
@@ -118,14 +123,36 @@
 /**
  * 项目展示：每个项目一张大卡片（序号 / 标题 / 指标 / 说明 / 亮点 / 技术标签），
  * 「查看详情」用 ElDialog 弹出架构说明，避免首屏过长。
+ *
+ * 手机端特殊处理：
+ *   详情内容很长（架构 + 实现 + 标签 + 地址），在 640px 以下的屏幕上
+ *   如果还用「居中 + 自适应高度」，弹窗会高过视口，标题和右上角关闭按钮会被裁到屏幕外，
+ *   用户就没法关掉它。所以小屏直接切换成「全屏弹窗」：标题栏固定在顶部、内容区内部滚动。
  */
-import { ref } from "vue";
+import { onBeforeUnmount, onMounted, ref } from "vue";
 import { ArrowRight, CaretTop, Link, Minus, Select, TopRight } from "@element-plus/icons-vue";
 import { projects, type Project } from "../data/projects";
 import { assetUrl } from "../utils/assetUrl";
 
 const detailVisible = ref(false);
 const current = ref<Project | null>(null);
+/** 小屏用全屏弹窗，保证标题栏（含关闭按钮）始终可见 */
+const dialogFullscreen = ref(false);
+
+// 640px 以下算手机，横竖屏切换（resize）时同步更新
+const smallScreenQuery = window.matchMedia("(max-width: 640px)");
+const syncDialogMode = () => {
+  dialogFullscreen.value = smallScreenQuery.matches;
+};
+
+onMounted(() => {
+  syncDialogMode();
+  smallScreenQuery.addEventListener("change", syncDialogMode);
+});
+
+onBeforeUnmount(() => {
+  smallScreenQuery.removeEventListener("change", syncDialogMode);
+});
 
 function openDetail(project: Project) {
   current.value = project;
@@ -505,6 +532,37 @@ function openLink(url?: string) {
   backdrop-filter: blur(18px);
   box-shadow: 0 30px 90px rgba(0, 0, 0, 0.6);
 
+  /* ---- 关键：让标题栏固定、内容区自己滚 ----
+     之前弹窗高度不受限，align-center 会把「比屏幕还高」的弹窗垂直居中，
+     标题和右上角关闭按钮就被顶到视口上方，用户滚不到也关不掉。
+     现在给一个最大高度 + 纵向 flex，标题栏永远在顶部可见。 */
+  display: flex;
+  flex-direction: column;
+  max-height: min(86vh, 900px);
+  overflow: hidden;
+
+  .el-dialog__header {
+    flex: 0 0 auto;
+    // 单独给标题栏一点底色，滚动时内容不会和标题糊在一起
+    padding-bottom: 14px;
+    border-bottom: 1px solid rgba(110, 190, 255, 0.12);
+  }
+
+  .el-dialog__body {
+    flex: 1 1 auto;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+  }
+
+  /* 关闭按钮加大点击区域：手机上 24px 太小，容易点不中 */
+  .el-dialog__headerbtn {
+    width: 40px;
+    height: 40px;
+    top: 8px;
+    right: 4px;
+    font-size: 19px;
+  }
+
   .el-dialog__title {
     font-family:
       "Segoe UI Semibold",
@@ -514,6 +572,29 @@ function openLink(url?: string) {
       sans-serif;
     font-size: 18px;
     color: #e9f3ff;
+  }
+}
+
+/* 小屏全屏模式：去掉圆角/边框，铺满屏幕，标题栏依然固定在顶部 */
+.project-dialog.el-dialog.is-fullscreen {
+  width: 100%;
+  max-height: 100vh;
+  height: 100%;
+  margin: 0;
+  border: 0;
+  border-radius: 0;
+
+  .el-dialog__header {
+    padding: calc(14px + env(safe-area-inset-top)) 18px 12px;
+  }
+
+  .el-dialog__headerbtn {
+    top: calc(8px + env(safe-area-inset-top));
+    right: 8px;
+  }
+
+  .el-dialog__body {
+    padding: 0 18px calc(24px + env(safe-area-inset-bottom));
   }
 }
 
