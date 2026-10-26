@@ -10,6 +10,22 @@ html {
   // 锚点跳转时给固定顶栏留出空间，避免标题被挡住
   scroll-padding-top: 84px;
   -webkit-text-size-adjust: 100%;
+  /* 横向裁切放在 html 上。
+     之前 body 用 overflow-x: hidden，副作用是「隐式把 body 变成滚动容器」，
+     于是 Element Plus 的锁滚动只锁住 body，而滚动条宽度补偿又加在 body 上，
+     弹层打开时页面会抖一下（内容左移 5px、固定顶栏不动）。
+     让 html 作唯一滚动容器，配合下面的 scrollbar-gutter 就能零位移。 */
+  overflow-x: hidden;
+  /* 始终为滚动条预留位置：弹层打开、滚动条消失时，页面宽度不会跳变 */
+  scrollbar-gutter: stable;
+}
+
+/* 弹层打开时锁滚动：
+   Element Plus 只给 body 加 overflow: hidden，而本站的滚动容器是 html，
+   所以这里用 :has 把锁加到 html 上（现代浏览器均支持）。
+   配合上面的 scrollbar-gutter，锁定期间滚动条位置仍被保留 → 宽度不抖。 */
+html:has(body.el-popup-parent--hidden) {
+  overflow: hidden;
 }
 
 body {
@@ -22,7 +38,21 @@ body {
   line-height: 1.7;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
-  overflow-x: hidden;
+  /* 注意：这里不要再写 overflow-x: hidden，
+     否则 body 会变成滚动容器，弹层锁滚动和滚动条补偿都会失配（见 html 那段注释）。 */
+}
+
+/* ===== 弹层打开时的宽度补偿 =====
+   Element Plus 打开弹窗 / 抽屉时会写 `body { width: calc(100% - <滚动条宽度>) }`，
+   目的是抵消滚动条消失后多出来的宽度。
+   但我们已经用 html 的 scrollbar-gutter: stable 预留了滚动条位置，
+   再补一次就会让内容反而变窄、整体左移 5px（就是你看到的"轻微抖动"）。
+   所以在支持 scrollbar-gutter 的浏览器里，把这次补偿清零。 */
+@supports (scrollbar-gutter: stable) {
+  body.el-popup-parent--hidden {
+    width: auto !important;
+    padding-right: 0 !important;
+  }
 }
 
 h1,
